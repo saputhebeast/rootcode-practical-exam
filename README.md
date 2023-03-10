@@ -4,7 +4,7 @@ Note: I changed the csv file column names from the original file. please use the
 
 How to run:
 - can run in local machine with mysql database setup
-- can run docker image using below commands
+- can run using docker
   - docker pull zulake/lpl-sri-lanka
   - docker run -p 9090:8090 zulake/lpl-sri-lanka
   - http://localhost:9090/api/v1/lpl
