@@ -70,12 +70,12 @@ public class LPLServiceImpl implements LPLService {
 
     @Override
     public String playerType(String name){
-        if(lplRepository.isPlayerBatsman(name) != null){
+        if(lplRepository.isPlayerBatsman(name) != null && lplRepository.isPlayerBowler(name) != null){
+            return "All-rounder";
+        }else if(lplRepository.isPlayerBatsman(name) != null){
             return "Batsman";
         }else if(lplRepository.isPlayerBowler(name) != null){
             return "Bowler";
-        }else if(lplRepository.isPlayerBatsman(name) != null && lplRepository.isPlayerBowler(name) != null){
-            return "All-rounder";
         }
         return null;
     }

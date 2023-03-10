@@ -5,10 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-
 @Repository
 public interface LPLRepository extends JpaRepository<LPL, Integer> {
     @Query(value = "SELECT SUM(runs_off_bat + extras + wides + no_balls + byes + leg_byes) AS 'total' FROM lpl.lpl WHERE batting_team_name = ?1", nativeQuery = true)

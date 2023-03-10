@@ -9,6 +9,8 @@ import com.example.rootcodelabslpl.api.v1.lpl.service.impl.LPLServiceImpl;
 import com.example.rootcodelabslpl.utils.StatusList;
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -31,69 +33,80 @@ public class LPLController {
     @Autowired
     private ErrorResponseDTO errorResponseDTO;
 
+    Logger logger = LoggerFactory.getLogger(LPLController.class);
+
     @PostMapping
     public ResponseEntity createMatchData(@RequestParam("file") MultipartFile file) throws IOException {
-        if(file.isEmpty()){
-            return new ResponseEntity("empty file", HttpStatusCode.valueOf(StatusList.HTTP_ERROR));
-        }else{
-            try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-                // create csv bean reader
-                CsvToBean<GameDetailsSaveRequestDTO> csvToBean = new CsvToBeanBuilder(reader)
-                        .withType(GameDetailsSaveRequestDTO.class)
-                        .withIgnoreLeadingWhiteSpace(true)
-                        .build();
-                // convert `CsvToBean` object to list of users
-                List<GameDetailsSaveRequestDTO> matches = csvToBean.parse();
+        try (Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+            // create csv bean reader
+            CsvToBean<GameDetailsSaveRequestDTO> csvToBean = new CsvToBeanBuilder(reader)
+                    .withType(GameDetailsSaveRequestDTO.class)
+                    .withIgnoreLeadingWhiteSpace(true)
+                    .build();
+            // convert `CsvToBean` object to list of users
+            List<GameDetailsSaveRequestDTO> matches = csvToBean.parse();
 
-                List<LPL> addGames = new ArrayList<>();
+            List<LPL> addGames = new ArrayList<>();
 
-                for(int i = 0; i < matches.size(); i++){
-                    LPL row = new LPL();
-                    row.setInningsNumber(matches.get(i).getInningsNumber());
-                    row.setOverAndBall(matches.get(i).getOverAndBall());
-                    row.setBattingTeamName(matches.get(i).getBattingTeamName());
-                    row.setBatsman(matches.get(i).getBatsman());
-                    row.setNonStriker(matches.get(i).getNonStriker());
-                    row.setBowler(matches.get(i).getBowler());
-                    row.setRunsOffBat(matches.get(i).getRunsOffBat());
-                    row.setExtras(matches.get(i).getExtras());
-                    row.setWides(matches.get(i).getWides());
-                    row.setNoBalls(matches.get(i).getNoBalls());
-                    row.setByes(matches.get(i).getByes());
-                    row.setLegByes(matches.get(i).getLegByes());
-                    row.setKindOfWicket(matches.get(i).getKindOfWicket());
-                    row.setDismissedPlayed(matches.get(i).getDismissedPlayed());
-                    addGames.add(row);
-                }
-                return new ResponseEntity(lplService.saveGameDetails(addGames), HttpStatusCode.valueOf(StatusList.HTTP_SUCCESS));
-            } catch (Exception ex) {
-                // logger
-                return new ResponseEntity("something went wrong!", HttpStatusCode.valueOf(StatusList.HTTP_SUCCESS));
+            for(int i = 0; i < matches.size(); i++){
+                LPL row = new LPL();
+                row.setInningsNumber(matches.get(i).getInningsNumber());
+                row.setOverAndBall(matches.get(i).getOverAndBall());
+                row.setBattingTeamName(matches.get(i).getBattingTeamName());
+                row.setBatsman(matches.get(i).getBatsman());
+                row.setNonStriker(matches.get(i).getNonStriker());
+                row.setBowler(matches.get(i).getBowler());
+                row.setRunsOffBat(matches.get(i).getRunsOffBat());
+                row.setExtras(matches.get(i).getExtras());
+                row.setWides(matches.get(i).getWides());
+                row.setNoBalls(matches.get(i).getNoBalls());
+                row.setByes(matches.get(i).getByes());
+                row.setLegByes(matches.get(i).getLegByes());
+                row.setKindOfWicket(matches.get(i).getKindOfWicket());
+                row.setDismissedPlayed(matches.get(i).getDismissedPlayed());
+                addGames.add(row);
             }
+            return new ResponseEntity(lplService.saveGameDetails(addGames), HttpStatusCode.valueOf(StatusList.HTTP_SUCCESS));
+        } catch (Exception e) {
+            logger.error("Error caught from createMatchData controller: " + e.getMessage());
+            errorResponseDTO.setMessage("Something went wrong!");
+            return new ResponseEntity(errorResponseDTO, HttpStatusCode.valueOf(StatusList.HTTP_ERROR));
         }
     }
 
     @GetMapping
     public ResponseEntity getSummary(){
-        matchSummaryResponseDTO.setWinningTeamName(lplService.winningTeam());
-        matchSummaryResponseDTO.setScoresOfEachTeam(lplService.scoresOfTeams());
-        matchSummaryResponseDTO.setPlayedOverInEachInnings(lplService.playedOverInEachInnings());
-        matchSummaryResponseDTO.setMostRunsScorer(lplService.mostRunScorer());
-        matchSummaryResponseDTO.setMostWicketsTaker(lplService.highestWicketTaker());
+        try{
+            matchSummaryResponseDTO.setWinningTeamName(lplService.winningTeam());
+            matchSummaryResponseDTO.setScoresOfEachTeam(lplService.scoresOfTeams());
+            matchSummaryResponseDTO.setPlayedOverInEachInnings(lplService.playedOverInEachInnings());
+            matchSummaryResponseDTO.setMostRunsScorer(lplService.mostRunScorer());
+            matchSummaryResponseDTO.setMostWicketsTaker(lplService.highestWicketTaker());
 
-        return new ResponseEntity(matchSummaryResponseDTO, HttpStatusCode.valueOf(StatusList.HTTP_ERROR));
+            return new ResponseEntity(matchSummaryResponseDTO, HttpStatusCode.valueOf(StatusList.HTTP_SUCCESS));
+        }catch (Exception e){
+            logger.error("Error caught from getSummary controller: " + e.getMessage());
+            errorResponseDTO.setMessage("Something went wrong!");
+            return new ResponseEntity(errorResponseDTO, HttpStatusCode.valueOf(StatusList.HTTP_ERROR));
+        }
     }
 
     @GetMapping("{name}")
     public ResponseEntity getPlayerSummary(@PathVariable("name") String name){
-        if(lplService.isPlayerExist(name)){
-            playerSummaryDTO.setName(lplService.matchingPlayerName(name));
-            playerSummaryDTO.setType(lplService.playerType(lplService.matchingPlayerName(name)));
-            playerSummaryDTO.setRuns(lplService.runsForPlayer(lplService.matchingPlayerName(name)));
-            playerSummaryDTO.setWickets(lplService.wicketsForPlayer(lplService.matchingPlayerName(name)));
-            return new ResponseEntity(playerSummaryDTO, HttpStatusCode.valueOf(StatusList.HTTP_SUCCESS));
-        }else{
-            errorResponseDTO.setMessage("Please check the player name again!");
+        try{
+            if(lplService.isPlayerExist(name)){
+                playerSummaryDTO.setName(lplService.matchingPlayerName(name));
+                playerSummaryDTO.setType(lplService.playerType(lplService.matchingPlayerName(name)));
+                playerSummaryDTO.setRuns(lplService.runsForPlayer(lplService.matchingPlayerName(name)));
+                playerSummaryDTO.setWickets(lplService.wicketsForPlayer(lplService.matchingPlayerName(name)));
+                return new ResponseEntity(playerSummaryDTO, HttpStatusCode.valueOf(StatusList.HTTP_SUCCESS));
+            }else{
+                errorResponseDTO.setMessage("Please check the player name again!");
+                return new ResponseEntity(errorResponseDTO, HttpStatusCode.valueOf(StatusList.HTTP_ERROR));
+            }
+        }catch (Exception e){
+            logger.error("Error caught from getPlayerSummary controller: " + e.getMessage());
+            errorResponseDTO.setMessage("Something went wrong!");
             return new ResponseEntity(errorResponseDTO, HttpStatusCode.valueOf(StatusList.HTTP_ERROR));
         }
     }
