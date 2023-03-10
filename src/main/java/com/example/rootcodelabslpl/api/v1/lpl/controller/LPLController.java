@@ -97,7 +97,7 @@ public class LPLController {
             if(lplService.isPlayerExist(name)){
                 playerSummaryDTO.setName(lplService.matchingPlayerName(name));
                 playerSummaryDTO.setType(lplService.playerType(lplService.matchingPlayerName(name)));
-                playerSummaryDTO.setRuns(lplService.runsForPlayer(lplService.matchingPlayerName(name)));
+                playerSummaryDTO.setRunsDetails(lplService.playerRunsDetails(lplService.matchingPlayerName(name)));
                 playerSummaryDTO.setWickets(lplService.wicketsForPlayer(lplService.matchingPlayerName(name)));
                 return new ResponseEntity(playerSummaryDTO, HttpStatusCode.valueOf(StatusList.HTTP_SUCCESS));
             }else{

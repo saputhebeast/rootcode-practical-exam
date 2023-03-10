@@ -86,7 +86,28 @@ public class LPLServiceImpl implements LPLService {
     }
 
     @Override
-    public int runsForPlayer(String name){
+    public String runsForPlayer(String name){
         return lplRepository.howManyRuns(name);
+    }
+
+    @Override
+    public String howPlayerEarnsRun(int runType, String name){
+        return lplRepository.howManyRunsCount(runType, name);
+    }
+
+    @Override
+    public HashMap<String, String> playerRunsDetails(String name) {
+        HashMap<String, String> details = new HashMap<>();
+
+        details.put("totalRuns", lplRepository.howManyRuns(name));
+        details.put("ballsFaced", String.valueOf(lplRepository.howManyBallsFaced(name)));
+        details.put("dots", lplRepository.howManyRunsCount(0, name) == null ? "0" : lplRepository.howManyRunsCount(0, name));
+        details.put("ones", lplRepository.howManyRunsCount(1, name) == null ? "0" : lplRepository.howManyRunsCount(1, name));
+        details.put("twos", lplRepository.howManyRunsCount(2, name) == null ? "0" : lplRepository.howManyRunsCount(2, name));
+        details.put("threes", lplRepository.howManyRunsCount(3, name) == null ? "0" : lplRepository.howManyRunsCount(3, name));
+        details.put("fours", lplRepository.howManyRunsCount(4, name) == null ? "0" : lplRepository.howManyRunsCount(4, name));
+        details.put("sixes", lplRepository.howManyRunsCount(6, name) == null ? "0" : lplRepository.howManyRunsCount(6, name));
+        details.put("strikeRate", String.valueOf((Integer.parseInt(lplRepository.howManyRuns(name)) / (float) lplRepository.howManyBallsFaced(name)) * 100));
+        return details;
     }
 }

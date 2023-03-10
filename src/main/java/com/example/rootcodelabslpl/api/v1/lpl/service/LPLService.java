@@ -20,5 +20,9 @@ public interface LPLService {
 
     int wicketsForPlayer(String name);
 
-    int runsForPlayer(String name);
+    String runsForPlayer(String name);
+
+    String howPlayerEarnsRun(int runType, String name);
+
+    HashMap<String, String> playerRunsDetails(String name);
 }
