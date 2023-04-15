@@ -32,9 +32,14 @@ public interface LPLRepository extends JpaRepository<LPL, Integer> {
     String isPlayerBowler(String name);
 
     @Query(value = "SELECT SUM(runs_off_bat) AS 'runs' FROM lpl.lpl WHERE batsman like ?1", nativeQuery = true)
-    int howManyRuns(String name);
+    String howManyRuns(String name);
 
     @Query(value = "SELECT COUNT(kind_of_wicket) from lpl.lpl WHERE kind_of_wicket IN (\"bowled\", \"caught\") and bowler like ?1", nativeQuery = true)
     int howManyWickets(String name);
 
+    @Query(value = "SELECT count(*) FROM lpl.lpl WHERE runs_off_bat = ?1 group by batsman having batsman like %?2%", nativeQuery = true)
+    String howManyRunsCount(int runType, String batsman);
+
+    @Query(value = "SELECT COUNT(*) FROM lpl.lpl GROUP BY batsman having batsman like ?1", nativeQuery = true)
+    int howManyBallsFaced(String batsman);
 }
